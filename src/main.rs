@@ -36,7 +36,7 @@ fn main() -> Result<()> {
         .bearer_auth(token)
         .send()?;
 
-    let me = match response.json::<api::Response<api::User>>()? {
+    let me = match response.json::<api::Response<api::user::User>>()? {
         api::Response::Success(me) => me,
         api::Response::Error(e) => {
             println!("ERROR: Code: {} Message: {}", e.error.code, e.error.message);
@@ -45,6 +45,18 @@ fn main() -> Result<()> {
     };
 
     println!("User: {} / {}", me.display_name, me.user_principal_name);
+
+    let lists: api::tasks::TodoTaskListCollection = client.get(graph_url("/me/todo/lists"))
+        .bearer_auth(token)
+        .send()?
+        .json()?;
+
+    println!();
+    println!("Todo Lists:");
+
+    for list in lists.value {
+        println!("{}", list.display_name);
+    }
 
     Ok(())
 }
