@@ -8,10 +8,9 @@ use std::io;
 mod error;
 mod api;
 
+use error::Result;
+
 const GRAPH_BASE_URI: &str = "https://graph.microsoft.com/beta";
-
-pub type Result<T> = std::result::Result<T, error::Error>;
-
 
 
 fn graph_url(path: &str) -> String {
@@ -26,7 +25,7 @@ fn main() -> Result<()> {
 
     let mut token = String::new();
     io::stdin().read_line(&mut token).expect("Failed to read line");
-    let token = token.trim_end();
+    let token = token.trim();
 
     println!();
 
@@ -54,9 +53,29 @@ fn main() -> Result<()> {
     println!();
     println!("Todo Lists:");
 
-    for list in lists.value {
-        println!("{}", list.display_name);
+    for (i, list) in lists.value.iter().enumerate() {
+        println!("{}. {}", i + 1, list.display_name);
     }
+
+    println!();
+    println!("Enter number of list to fetch: ");
+
+    let selected_list: &api::tasks::TodoTaskList = {
+        loop {
+            let mut index_str = String::new();
+            io::stdin().read_line(&mut index_str).expect("Failed to read selected list!");
+            let selected_list_index: u32 = index_str.trim().parse()?;
+
+            let selected_list = lists.value.get((selected_list_index as usize) - 1);
+
+            if let Some(list) = selected_list {
+                break list;
+            }
+        }
+    };
+
+    println!();
+    println!("Fetching list: {}", selected_list.display_name);
 
     Ok(())
 }

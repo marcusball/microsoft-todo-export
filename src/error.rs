@@ -7,6 +7,8 @@ pub enum Error {
     IOError(::std::io::Error),
 
     ReqwestError(::reqwest::Error),
+
+    ParseIntError(::std::num::ParseIntError),
 }
 
 impl ::std::error::Error for Error {
@@ -14,6 +16,7 @@ impl ::std::error::Error for Error {
         match self {
             Self::IOError(e) => Some(e),
             Self::ReqwestError(e) => Some(e),
+            Self::ParseIntError(e) => Some(e),
         }
     }
 }
@@ -27,6 +30,12 @@ impl From<::std::io::Error> for Error {
 impl From<::reqwest::Error> for Error {
     fn from(e: ::reqwest::Error) -> Error {
         Error::ReqwestError(e)
+    }
+}
+
+impl From<::std::num::ParseIntError> for Error {
+    fn from(e: ::std::num::ParseIntError) -> Error {
+        Error::ParseIntError(e)
     }
 }
 
