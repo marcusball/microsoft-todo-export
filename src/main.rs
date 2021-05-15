@@ -8,6 +8,7 @@ use std::io;
 mod error;
 mod api;
 
+use api::Collection;
 use error::Result;
 
 const GRAPH_BASE_URI: &str = "https://graph.microsoft.com/beta";
@@ -45,7 +46,7 @@ fn main() -> Result<()> {
 
     println!("User: {} / {}", me.display_name, me.user_principal_name);
 
-    let lists: api::tasks::TodoTaskListCollection = client.get(graph_url("/me/todo/lists"))
+    let lists: Collection<api::tasks::TodoTaskList> = client.get(graph_url("/me/todo/lists"))
         .bearer_auth(token)
         .send()?
         .json()?;
@@ -75,7 +76,32 @@ fn main() -> Result<()> {
     };
 
     println!();
-    println!("Fetching list: {}", selected_list.display_name);
+    println!("Fetching list: {} ({})", selected_list.display_name, selected_list.id);
+
+    let mut tasks = Vec::<api::tasks::TodoTask>::new();
+
+    let mut fetch_url = graph_url(&format!("/me/todo/lists/{}/tasks", selected_list.id));
+    loop {
+        let mut list: Collection<api::tasks::TodoTask> = client.get(fetch_url)
+            .bearer_auth(token)
+            .send()?
+            .json()?;
+        
+        tasks.append(&mut list.value);
+
+        if list.odata.next_link.is_none() {
+            break;
+        }
+
+        fetch_url = list.odata.next_link.expect("Failed to unwrap next task list link!");
+    }
+
+    println!();
+    println!("Tasks: ");
+
+    for task in tasks {
+        println!("{}", task.title);
+    }
 
     Ok(())
 }

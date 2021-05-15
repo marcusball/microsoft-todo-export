@@ -1,11 +1,36 @@
 
 use serde::de::Deserialize;
 
+pub type Date = String;
 pub type DateTimeOffset = String;
 pub type StringCollection = Vec<String>;
 
 pub mod user;
 pub mod tasks;
+
+#[derive(Deserialize, Debug)]
+pub struct OData {
+    #[serde(rename = "@odata.context")] 
+    pub context: Option<String>,
+
+    #[serde(rename = "@odata.nextLink")] 
+    pub next_link: Option<String>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Collection<T> {
+    pub value: Vec<T>,
+
+    #[serde(flatten)]
+    pub odata: OData,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DateTimeTimeZone {
+    pub date_time: String,
+    pub time_zone: String,
+}
 
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
