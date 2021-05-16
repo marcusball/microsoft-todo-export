@@ -8,7 +8,7 @@ pub type StringCollection = Vec<String>;
 pub mod user;
 pub mod tasks;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct OData {
     #[serde(rename = "@odata.context")] 
     pub context: Option<String>,
@@ -17,7 +17,7 @@ pub struct OData {
     pub next_link: Option<String>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Collection<T> {
     pub value: Vec<T>,
 
@@ -25,14 +25,14 @@ pub struct Collection<T> {
     pub odata: OData,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct DateTimeTimeZone {
     pub date_time: String,
     pub time_zone: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum Response<T> {
     Success(T),
@@ -40,14 +40,14 @@ pub enum Response<T> {
     Error(ErrorResponse)
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ErrorResponse {
     pub error: ErrorResponseError,
 }
 
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ErrorResponseError {
     pub code: String,
@@ -57,7 +57,7 @@ pub struct ErrorResponseError {
     inner_error: ErrorResponseErrorInnerError
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ErrorResponseErrorInnerError {
     date: String,

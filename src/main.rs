@@ -4,6 +4,7 @@ extern crate serde;
 extern crate derive_more;
 
 use std::io;
+use serde::de::DeserializeOwned;
 
 mod error;
 mod api;
@@ -12,6 +13,102 @@ use api::Collection;
 use error::Result;
 
 const GRAPH_BASE_URI: &str = "https://graph.microsoft.com/beta";
+
+
+struct CollectionReader<'a, T> where T: DeserializeOwned + Clone {
+    client: &'a reqwest::blocking::Client,
+
+    token: &'a str,
+
+    collection: Option<api::Collection<T>>,
+
+    items: Vec<T>,
+
+    iter_index: usize,
+}
+
+impl<'a, T: DeserializeOwned + Clone> CollectionReader<'a, T> {
+    pub fn new(client: &'a reqwest::blocking::Client, token: &'a str) -> Self {
+        Self {
+            client,
+            token,
+            collection: None,
+            items: Vec::new(),
+            iter_index: 0,
+        }
+    }
+
+    pub fn fetch<S: AsRef<str>>(&mut self, url: S) -> Result<usize> {
+        self.fetch_inner(url)
+    }
+
+    fn fetch_inner<S: AsRef<str>>(&mut self, url: S) -> Result<usize> {
+        self.collection = Some(self.client
+            .get(url.as_ref())
+            .bearer_auth(self.token)
+            .send()?
+            .json()?);
+
+        let new_item_count = self.collection.as_ref().unwrap().value.len();
+
+        // Copy all of the newly fetched items and put them into the `items` vec.
+        self.items.append(&mut self.collection.as_ref().unwrap().value.clone());
+
+        Ok(new_item_count)
+    }
+
+    pub fn fetch_next(&mut self) -> Result<usize> {
+        if self.collection.is_none() {
+            return Ok(0);
+        }
+
+        let link = self.collection.as_ref().unwrap().odata.next_link.clone();
+
+        match link {
+            Some(link) => self.fetch_inner(&link),
+            None => Ok(0)
+        }
+    }
+
+    pub fn has_next_link(&self) -> bool {
+        match &self.collection {
+            Some(c) => c.odata.next_link.is_some(),
+            None => false
+        }
+    }
+}
+
+impl<'a, T: DeserializeOwned + Clone> Iterator for CollectionReader<'a, T> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.collection.is_none() {
+            return None;
+        }
+
+        if self.collection.as_ref().unwrap().value.is_empty() {
+            return None;
+        }
+
+        // If we're at the last item in the currently loaded items
+        if self.iter_index == self.items.len() {
+            if !self.has_next_link() {
+                return None;
+            }
+
+            self.fetch_next().expect("Failed to fetch next items!");
+        }
+
+        if self.iter_index == self.items.len() {
+            return None;
+        }
+
+        let fetch_index = self.iter_index;
+        self.iter_index += 1;
+
+        self.items.get(fetch_index).map(|item_ref| item_ref.clone())
+    }
+}
 
 
 fn graph_url(path: &str) -> String {
@@ -78,28 +175,15 @@ fn main() -> Result<()> {
     println!();
     println!("Fetching list: {} ({})", selected_list.display_name, selected_list.id);
 
-    let mut tasks = Vec::<api::tasks::TodoTask>::new();
+    let fetch_url = graph_url(&format!("/me/todo/lists/{}/tasks", selected_list.id));
 
-    let mut fetch_url = graph_url(&format!("/me/todo/lists/{}/tasks", selected_list.id));
-    loop {
-        let mut list: Collection<api::tasks::TodoTask> = client.get(fetch_url)
-            .bearer_auth(token)
-            .send()?
-            .json()?;
-        
-        tasks.append(&mut list.value);
-
-        if list.odata.next_link.is_none() {
-            break;
-        }
-
-        fetch_url = list.odata.next_link.expect("Failed to unwrap next task list link!");
-    }
+    let mut task_collection = CollectionReader::<api::tasks::TodoTask>::new(&client, &token);
+    task_collection.fetch(fetch_url)?;
 
     println!();
     println!("Tasks: ");
 
-    for task in tasks {
+    for task in task_collection {
         println!("{}", task.title);
     }
 

@@ -16,7 +16,7 @@ pub struct TodoTaskList {
     pub wellknown_list_name: WellknownListName,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum WellknownListName {
     None,
@@ -25,7 +25,7 @@ pub enum WellknownListName {
     UnknownFutureValue,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TodoTask {
     pub body: ItemBody,
@@ -46,7 +46,7 @@ pub struct TodoTask {
     // TODO: linkedResources
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum TaskStatus {
     NotStarted,
@@ -56,21 +56,21 @@ pub enum TaskStatus {
     Deferred,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ItemBody {
     pub content: String,
     pub content_type: BodyType,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum BodyType {
     Text,
     Html,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum Importance {
     Low,
@@ -78,14 +78,14 @@ pub enum Importance {
     High
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PatternedRecurrence {
     pub pattern: RecurrencePattern,
     pub range: RecurrenceRange,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 #[serde(tag = "type")]
 pub enum RecurrencePattern {
@@ -97,7 +97,7 @@ pub enum RecurrencePattern {
     RelativeYearly { interval: i32, days_of_week: Vec<DayOfWeek>, month: i32 }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum DayOfWeek {
     Sunday,
@@ -109,7 +109,7 @@ pub enum DayOfWeek {
     Saturday,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 #[serde(tag = "type")]
 pub enum RecurrenceRange {

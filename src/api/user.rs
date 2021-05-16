@@ -3,7 +3,7 @@ pub type DateTimeOffset = String;
 pub type StringCollection = Vec<String>;
 
 /// See: https://docs.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0#properties
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct User {
     pub about_me: Option<String>,
@@ -149,7 +149,7 @@ pub struct User {
 }
 
 /// See: https://docs.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-1.0#agegroup-values
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum AgeGroup {
     Minor,
@@ -158,7 +158,7 @@ pub enum AgeGroup {
 }
 
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum ConsentProvidedForMinor {
     Granted,
@@ -166,7 +166,7 @@ pub enum ConsentProvidedForMinor {
     NotRequired
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum LegalAgeGroupClassification {
     MinorWithOutParentalConsent, 
@@ -177,7 +177,7 @@ pub enum LegalAgeGroupClassification {
 }
 
 /// See: https://docs.microsoft.com/en-us/graph/api/resources/objectidentity?view=graph-rest-1.0
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ObjectIdentity {
     pub sign_in_type: String,
