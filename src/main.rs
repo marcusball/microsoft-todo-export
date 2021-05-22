@@ -14,20 +14,27 @@ use error::Result;
 
 const GRAPH_BASE_URI: &str = "https://graph.microsoft.com/beta";
 
-
+/// A hacky fucking struct for reading from a paged `Collection`. 
 struct CollectionReader<'a, T> where T: DeserializeOwned + Clone {
+    /// The `reqwest` client from which to read the next links (pages) in the collection.
     client: &'a reqwest::blocking::Client,
 
+    /// The user's OAuth access `token`. 
     token: &'a str,
 
+    /// The `Collection` to read.
     collection: Option<api::Collection<T>>,
 
+    /// The full list of `items` which have been read from the `Collection` so far.
     items: Vec<T>,
 
+    /// When iterating, the current index in the `items` vec.
     iter_index: usize,
 }
 
 impl<'a, T: DeserializeOwned + Clone> CollectionReader<'a, T> {
+
+    /// Create a new collection reader, given the `client` and the access `token`. 
     pub fn new(client: &'a reqwest::blocking::Client, token: &'a str) -> Self {
         Self {
             client,
@@ -38,10 +45,14 @@ impl<'a, T: DeserializeOwned + Clone> CollectionReader<'a, T> {
         }
     }
 
+    /// First action:
+    /// Fetch the requested collection from the given `url`. 
     pub fn fetch<S: AsRef<str>>(&mut self, url: S) -> Result<usize> {
         self.fetch_inner(url)
     }
 
+    /// Fetch the requested collection from the given `url`. 
+    /// Append the received collection items into the `items` property. 
     fn fetch_inner<S: AsRef<str>>(&mut self, url: S) -> Result<usize> {
         self.collection = Some(self.client
             .get(url.as_ref())
@@ -57,6 +68,7 @@ impl<'a, T: DeserializeOwned + Clone> CollectionReader<'a, T> {
         Ok(new_item_count)
     }
 
+    /// Fetch the next page of items into the `items` property.
     pub fn fetch_next(&mut self) -> Result<usize> {
         if self.collection.is_none() {
             return Ok(0);
@@ -70,6 +82,7 @@ impl<'a, T: DeserializeOwned + Clone> CollectionReader<'a, T> {
         }
     }
 
+    /// Does the collection have any further links (pages)? 
     pub fn has_next_link(&self) -> bool {
         match &self.collection {
             Some(c) => c.odata.next_link.is_some(),
